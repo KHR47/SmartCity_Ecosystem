@@ -66,6 +66,15 @@ export class ParkingService {
     });
   }
 
+  async findSlotById(id: number) {
+    const slot = await this.slotRepo.findOne({
+      where: { id },
+      relations: ['parkingLot'],
+    });
+    if (!slot) throw new NotFoundException('Slot not found');
+    return slot;
+  }
+
   async createSlot(lotId: number, data: any) {
     const lot = await this.lotRepo.findOne({ where: { id: lotId } });
     if (!lot) throw new NotFoundException('Parking lot not found');
@@ -125,8 +134,9 @@ export class ParkingService {
   // ─── BOOKING ─────────────────────────────────────────────────────────────────
 
   async createBooking(userId: number, data: any) {
+    const slotId = Number(data.slotId);
     const slot = await this.slotRepo.findOne({
-      where: { id: data.slotId },
+      where: { id: slotId },
       relations: ['parkingLot'],
     });
     if (!slot || slot.status !== SlotStatus.AVAILABLE) {
@@ -135,8 +145,8 @@ export class ParkingService {
 
     const booking = this.bookingRepo.create({
       user: { id: userId },
-      parkingSlot: { id: data.slotId },
-      vehicle: data.vehicleId ? { id: data.vehicleId } : undefined,
+      parkingSlot: { id: slotId },
+      vehicle: data.vehicleId ? { id: Number(data.vehicleId) } : undefined,
       vehicleNumber: data.vehicleNumber,
       startTime: data.startTime || new Date(),
       endTime: data.endTime || null,

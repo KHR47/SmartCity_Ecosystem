@@ -34,6 +34,11 @@ export class ParkingController {
     return this.parkingService.findSlotsByLot(id);
   }
 
+  @Get('slots/:id')
+  findSlot(@Param('id', ParseIntPipe) id: number) {
+    return this.parkingService.findSlotById(id);
+  }
+
   // ────────────────────────────────────────────────────────────────────────────
   // CITIZEN — Vehicles
   // ────────────────────────────────────────────────────────────────────────────
