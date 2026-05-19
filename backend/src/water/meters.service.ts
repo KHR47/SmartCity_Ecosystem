@@ -1,44 +1,82 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { WaterMeter } from './entities/water-meter.entity';
 
 @Injectable()
-export class MetersService {
-  private meters: any[] = [
-    {
-      id: "REQ-9942",
-      citizenName: "Rahim Uddin",
-      zone: "Mirpur",
-      type: "residential",
-      status: "pending",
-      address: "Block C, Road 2, House 14",
-      lastReading: 0,
-      readings: [],
-      pendingInvoice: null,
-      invoiceHistory: []
-    },
-    {
-      id: "WM-GUL-001",
-      citizenName: "Karim Hassan",
-      zone: "Gulshan",
-      type: "residential",
-      status: "active",
-      address: "Road 12, House 4B",
-      lastReading: 1250,
-      maxLimit: 2000,
-      readings: [
-        { id: "R1", date: "2026-03-01", value: 1250, recordedBy: "Auto" },
-        { id: "R2", date: "2026-02-01", value: 1120, recordedBy: "Auto" },
-      ],
-      pendingInvoice: null,
-      invoiceHistory: []
-    }
-  ];
+export class MetersService implements OnModuleInit {
+  constructor(
+    @InjectRepository(WaterMeter)
+    private readonly waterMeterRepository: Repository<WaterMeter>,
+  ) {}
 
-  findAll() {
-    return this.meters;
+  async onModuleInit() {
+    const count = await this.waterMeterRepository.count();
+    if (count === 0) {
+      const initialMeters = [
+        {
+          id: "REQ-9942",
+          citizenName: "Rahim Uddin",
+          zone: "Mirpur",
+          type: "residential",
+          status: "pending",
+          address: "Block C, Road 2, House 14",
+          lastReading: 0,
+          readings: [],
+          pendingInvoice: null,
+          invoiceHistory: []
+        },
+        {
+          id: "WM-GUL-001",
+          citizenName: "Karim Hassan",
+          zone: "Gulshan",
+          type: "residential",
+          status: "active",
+          address: "Road 12, House 4B",
+          lastReading: 1250,
+          maxLimit: 2000,
+          readings: [
+            { id: "R1", date: "2026-03-01", value: 1250, recordedBy: "Auto" },
+            { id: "R2", date: "2026-02-01", value: 1120, recordedBy: "Auto" },
+          ],
+          pendingInvoice: null,
+          invoiceHistory: []
+        },
+        {
+          id: "WM-BAN-012",
+          citizenName: "Anisur Rahman",
+          zone: "Banani",
+          type: "commercial",
+          status: "active",
+          address: "Road 11, Block F",
+          lastReading: 940,
+          maxLimit: 5000,
+          readings: [
+            { id: "R4", date: "2026-03-01", value: 940, recordedBy: "Auto" }
+          ]
+        }
+      ];
+      await this.waterMeterRepository.save(initialMeters);
+    }
   }
 
-  requestMeter(data: any) {
-    const newMeter = {
+  async findAll() {
+    return this.waterMeterRepository.find();
+  }
+
+  async requestMeter(data: any) {
+    const citizenNameLower = data.citizenName?.trim().toLowerCase();
+    if (citizenNameLower) {
+      const allMeters = await this.waterMeterRepository.find();
+      const userMeters = allMeters.filter(
+        (m) => m.citizenName?.trim().toLowerCase() === citizenNameLower
+      );
+      if (userMeters.length >= 5) {
+        throw new BadRequestException("You cannot have more than 5 meters for this service.");
+      }
+    }
+
+    const newMeter = this.waterMeterRepository.create({
       id: `REQ-${Math.floor(Math.random() * 10000)}`,
       status: "pending",
       lastReading: 0,
@@ -46,37 +84,49 @@ export class MetersService {
       pendingInvoice: null,
       invoiceHistory: [],
       ...data,
-    };
-    this.meters.unshift(newMeter);
-    return newMeter;
+    });
+    return this.waterMeterRepository.save(newMeter);
   }
 
-  approveMeter(id: string, hardwareId: string, maxLimit: number) {
-    const meter = this.meters.find(m => m.id === id);
+  async approveMeter(id: string, hardwareId: string, maxLimit: number) {
+    const meter = await this.waterMeterRepository.findOne({ where: { id } });
     if (meter) {
-      meter.id = hardwareId.toUpperCase();
-      meter.status = "active";
-      meter.maxLimit = maxLimit;
+      // Since changing primary key is not straightforward, we delete and recreate.
+      await this.waterMeterRepository.delete(id);
+      const activeMeter = this.waterMeterRepository.create({
+        ...meter,
+        id: hardwareId.toUpperCase(),
+        status: "active",
+        maxLimit,
+      });
+      return this.waterMeterRepository.save(activeMeter);
     }
-    return meter;
+    return null;
   }
 
-  logReading(id: string, value: number, recordedBy: string) {
-    const meter = this.meters.find(m => m.id === id);
+  async logReading(id: string, value: number, recordedBy: string) {
+    const meter = await this.waterMeterRepository.findOne({ where: { id } });
     if (meter) {
       meter.lastReading = value;
-      meter.readings.unshift({
-        id: `R-${Math.floor(Math.random() * 10000)}`,
-        date: new Date().toISOString().split("T")[0],
-        value,
-        recordedBy
-      });
+      if (!meter.readings) {
+        meter.readings = [];
+      }
+      meter.readings = [
+        {
+          id: `R-${Math.floor(Math.random() * 10000)}`,
+          date: new Date().toISOString().split("T")[0],
+          value,
+          recordedBy
+        },
+        ...meter.readings
+      ];
+      return this.waterMeterRepository.save(meter);
     }
-    return meter;
+    return null;
   }
 
-  issueInvoice(id: string, amount: number, breakdown: any) {
-    const meter = this.meters.find(m => m.id === id);
+  async issueInvoice(id: string, amount: number, breakdown: any) {
+    const meter = await this.waterMeterRepository.findOne({ where: { id } });
     if (meter) {
       meter.pendingInvoice = {
         id: `INV-${Math.floor(Math.random() * 100000)}`,
@@ -85,20 +135,27 @@ export class MetersService {
         breakdown,
         status: "unpaid"
       };
+      return this.waterMeterRepository.save(meter);
     }
-    return meter;
+    return null;
   }
 
-  payInvoice(id: string) {
-    const meter = this.meters.find(m => m.id === id);
+  async payInvoice(id: string) {
+    const meter = await this.waterMeterRepository.findOne({ where: { id } });
     if (meter && meter.pendingInvoice) {
       meter.pendingInvoice.status = "paid";
-      meter.invoiceHistory.unshift(meter.pendingInvoice);
+      if (!meter.invoiceHistory) {
+        meter.invoiceHistory = [];
+      }
+      meter.invoiceHistory = [
+        meter.pendingInvoice,
+        ...meter.invoiceHistory
+      ];
       meter.pendingInvoice = null;
       // Reset reading for next cycle
       meter.lastReading = 0;
-      meter.readings = [];
+      return this.waterMeterRepository.save(meter);
     }
-    return meter;
+    return null;
   }
 }

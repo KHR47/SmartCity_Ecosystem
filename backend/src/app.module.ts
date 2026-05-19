@@ -28,6 +28,9 @@ import { DocumentsModule } from './documents/documents.module';
 import { WaterModule } from './water/water.module';
 import { GasModule } from './gas/gas.module';
 import { ElectricityModule } from './electricity/electricity.module';
+import { WaterMeter } from './water/entities/water-meter.entity';
+import { GasMeter } from './gas/entities/gas-meter.entity';
+import { ElectricityMeter } from './electricity/entities/electricity-meter.entity';
 import { TransportModule } from './transport/transport.module';
 import { ParkingLot } from './parking/entities/parking-lot.entity';
 import { ParkingSlot } from './parking/entities/parking-slot.entity';
@@ -71,6 +74,9 @@ import { Vehicle } from './parking/entities/vehicle.entity';
           Booking,
           Violation,
           Vehicle,
+          WaterMeter,
+          GasMeter,
+          ElectricityMeter,
         ],
         synchronize: true,
       }),

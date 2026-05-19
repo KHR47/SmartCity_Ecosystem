@@ -1,15 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ElectricityMeter } from './entities/electricity-meter.entity';
 
 @Injectable()
 export class MetersService {
-  private meters: any[] = [];
+  constructor(
+    @InjectRepository(ElectricityMeter)
+    private readonly electricityMeterRepository: Repository<ElectricityMeter>,
+  ) {}
 
-  findAll() {
-    return this.meters;
+  async findAll() {
+    return this.electricityMeterRepository.find();
   }
 
-  requestMeter(data: any) {
-    const newMeter = {
+  async requestMeter(data: any) {
+    const citizenNameLower = data.citizenName?.trim().toLowerCase();
+    if (citizenNameLower) {
+      const allMeters = await this.electricityMeterRepository.find();
+      const userMeters = allMeters.filter(
+        (m) => m.citizenName?.trim().toLowerCase() === citizenNameLower
+      );
+      if (userMeters.length >= 5) {
+        throw new BadRequestException("You cannot have more than 5 meters for this service.");
+      }
+    }
+
+    const newMeter = this.electricityMeterRepository.create({
       id: `REQ-E-${Math.floor(Math.random() * 10000)}`,
       status: 'pending',
       lastReading: 0,
@@ -17,37 +34,48 @@ export class MetersService {
       pendingInvoice: null,
       invoiceHistory: [],
       ...data,
-    };
-    this.meters.unshift(newMeter);
-    return newMeter;
+    });
+    return this.electricityMeterRepository.save(newMeter);
   }
 
-  approveMeter(id: string, hardwareId: string, maxLimit: number) {
-    const meter = this.meters.find((m) => m.id === id);
+  async approveMeter(id: string, hardwareId: string, maxLimit: number) {
+    const meter = await this.electricityMeterRepository.findOne({ where: { id } });
     if (meter) {
-      meter.id = hardwareId.toUpperCase();
-      meter.status = 'active';
-      meter.maxLimit = maxLimit;
+      await this.electricityMeterRepository.delete(id);
+      const activeMeter = this.electricityMeterRepository.create({
+        ...meter,
+        id: hardwareId.toUpperCase(),
+        status: 'active',
+        maxLimit,
+      });
+      return this.electricityMeterRepository.save(activeMeter);
     }
-    return meter;
+    return null;
   }
 
-  logReading(id: string, value: number, recordedBy: string) {
-    const meter = this.meters.find((m) => m.id === id);
+  async logReading(id: string, value: number, recordedBy: string) {
+    const meter = await this.electricityMeterRepository.findOne({ where: { id } });
     if (meter) {
       meter.lastReading = value;
-      meter.readings.unshift({
-        id: `R-${Math.floor(Math.random() * 10000)}`,
-        date: new Date().toISOString().split('T')[0],
-        value,
-        recordedBy,
-      });
+      if (!meter.readings) {
+        meter.readings = [];
+      }
+      meter.readings = [
+        {
+          id: `R-${Math.floor(Math.random() * 10000)}`,
+          date: new Date().toISOString().split('T')[0],
+          value,
+          recordedBy,
+        },
+        ...meter.readings,
+      ];
+      return this.electricityMeterRepository.save(meter);
     }
-    return meter;
+    return null;
   }
 
-  issueInvoice(id: string, amount: number, breakdown: any) {
-    const meter = this.meters.find((m) => m.id === id);
+  async issueInvoice(id: string, amount: number, breakdown: any) {
+    const meter = await this.electricityMeterRepository.findOne({ where: { id } });
     if (meter) {
       meter.pendingInvoice = {
         id: `INV-E-${Math.floor(Math.random() * 100000)}`,
@@ -56,19 +84,26 @@ export class MetersService {
         breakdown,
         status: 'unpaid',
       };
+      return this.electricityMeterRepository.save(meter);
     }
-    return meter;
+    return null;
   }
 
-  payInvoice(id: string) {
-    const meter = this.meters.find((m) => m.id === id);
+  async payInvoice(id: string) {
+    const meter = await this.electricityMeterRepository.findOne({ where: { id } });
     if (meter && meter.pendingInvoice) {
       meter.pendingInvoice.status = 'paid';
-      meter.invoiceHistory.unshift(meter.pendingInvoice);
+      if (!meter.invoiceHistory) {
+        meter.invoiceHistory = [];
+      }
+      meter.invoiceHistory = [
+        meter.pendingInvoice,
+        ...meter.invoiceHistory,
+      ];
       meter.pendingInvoice = null;
       meter.lastReading = 0;
-      meter.readings = [];
+      return this.electricityMeterRepository.save(meter);
     }
-    return meter;
+    return null;
   }
 }
