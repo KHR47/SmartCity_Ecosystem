@@ -30,6 +30,7 @@ Built with **Next.js 15**, **NestJS**, **PostgreSQL**, and **Socket.IO**, the sy
 # ✨ Key Features
 
 ## 🛡️ Issue & Crime Management
+
 - Submit civic or crime reports
 - Upload evidence (Images / PDFs)
 - Anonymous crime reporting
@@ -41,6 +42,7 @@ Built with **Next.js 15**, **NestJS**, **PostgreSQL**, and **Socket.IO**, the sy
 ---
 
 ## 🚗 Smart Parking Ecosystem
+
 - Live parking slot availability
 - Slot reservation & booking
 - Parking violation management
@@ -50,6 +52,7 @@ Built with **Next.js 15**, **NestJS**, **PostgreSQL**, and **Socket.IO**, the sy
 ---
 
 ## 🚌 Transport & Transit System
+
 - Live GPS vehicle tracking
 - Route & schedule management
 - Dynamic fare system
@@ -58,6 +61,7 @@ Built with **Next.js 15**, **NestJS**, **PostgreSQL**, and **Socket.IO**, the sy
 ---
 
 ## ⚡ Civic Utility Monitoring
+
 - Water supply monitoring
 - Electricity grid status
 - LPG inventory management
@@ -67,21 +71,22 @@ Built with **Next.js 15**, **NestJS**, **PostgreSQL**, and **Socket.IO**, the sy
 
 # 👥 User Roles
 
-| Role | Responsibilities |
-|------|------------------|
-| 👤 Citizen | Report issues, track reports, book parking |
-| 👮 Field Officer | Investigate & resolve reports |
-| 🏛️ Authority | Assign officers & manage reports |
-| 🛠️ Admin | System management & analytics |
-| 🚘 Driver | Push live GPS updates |
-| 🅿️ Attendant | Validate parking bookings |
-| ⚙️ Operator | Manage transport system |
+| Role             | Responsibilities                           |
+| ---------------- | ------------------------------------------ |
+| 👤 Citizen       | Report issues, track reports, book parking |
+| 👮 Field Officer | Investigate & resolve reports              |
+| 🏛️ Authority     | Assign officers & manage reports           |
+| 🛠️ Admin         | System management & analytics              |
+| 🚘 Driver        | Push live GPS updates                      |
+| 🅿️ Attendant     | Validate parking bookings                  |
+| ⚙️ Operator      | Manage transport system                    |
 
 ---
 
 # 🧰 Tech Stack
 
 ## Frontend
+
 - Next.js 15 (App Router)
 - React
 - Tailwind CSS
@@ -90,6 +95,7 @@ Built with **Next.js 15**, **NestJS**, **PostgreSQL**, and **Socket.IO**, the sy
 - React Leaflet
 
 ## Backend
+
 - NestJS
 - TypeScript
 - PostgreSQL
@@ -222,11 +228,13 @@ Includes:
 # 📷 Evidence Upload
 
 Supported file types:
+
 - JPG
 - PNG
 - PDF
 
 Maximum size:
+
 - 5 MB
 
 ---
@@ -234,6 +242,7 @@ Maximum size:
 # 📬 Email Notifications
 
 Automatic emails for:
+
 - Report submission
 - Assignment
 - Status updates
@@ -255,6 +264,7 @@ Swagger API available at:
 # 🧪 Testing
 
 Implemented using:
+
 - Jest
 - Unit Testing
 - API Testing
@@ -287,4 +297,52 @@ This project is developed for academic and educational purposes.
 
 # 🌟 Smart City Vision
 
-> “Building safer, smarter, and more connected cities through technology.”
+> # “Building safer, smarter, and more connected cities through technology.”
+
+# Smart City Ecosystem
+
+Smart City Ecosystem is a full-stack web platform for city services, civic reports, utilities, parking, and transport workflows.
+
+## Project Apps
+
+- `frontend/` - Next.js web application for citizens, admins, authorities, operators, drivers, attendants, and officers.
+- `backend/` - NestJS API for authentication, reports, utilities, parking, transport, notifications, documents, and location data.
+- `SYSTEM_DESIGN.md` - system architecture and design notes.
+- `PROJECT_STRUCTURE.md` - folder map and naming guide for this repository.
+
+## Common Commands
+
+Run the frontend:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Run the backend:
+
+```bash
+cd backend
+npm run start:dev
+```
+
+Run backend tests:
+
+```bash
+cd backend
+npm run test
+```
+
+Run frontend linting:
+
+```bash
+cd frontend
+npm run lint
+```
+
+## Naming Rules
+
+- Feature folders use clear domain names: `reports`, `parking`, `transport`, `water`, `gas`, `electricity`.
+- Next.js route folders under `frontend/src/app` match URL paths and should stay URL-friendly.
+- NestJS backend modules use the standard `*.module.ts`, `*.controller.ts`, `*.service.ts`, `dto/`, and `entities/` naming pattern.
+- Maintenance scripts live in `scripts/` folders with action-based names such as `list-districts.ts` or `merge-duplicate-divisions.ts`.

@@ -1,5 +1,5 @@
 {
-  "name": "backend",
+  "name": "smart-city-ecosystem-api",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -17,7 +17,15 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "seed:demo": "ts-node src/seed.ts",
+    "seed:parking": "ts-node src/seed-parking.ts",
+    "db:list-districts": "ts-node scripts/database/list-districts.ts",
+    "db:list-divisions": "ts-node scripts/database/list-divisions.ts",
+    "db:inspect-duplicate-districts": "ts-node scripts/database/inspect-duplicate-districts.ts",
+    "db:merge-duplicate-districts": "ts-node scripts/database/merge-duplicate-districts.ts",
+    "db:merge-renamed-districts": "ts-node scripts/database/merge-renamed-districts.ts",
+    "db:merge-duplicate-divisions": "ts-node scripts/database/merge-duplicate-divisions.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

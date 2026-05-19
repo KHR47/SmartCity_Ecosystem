@@ -54,12 +54,6 @@ export class ReportsController {
     return this.reportsService.findPublicReports(req.user);
   }
 
-  // IoT Simulation Webhook
-  @Public()
-  @Post('iot/webhook')
-  handleIotWebhook(@Body() payload: any) {
-    return this.reportsService.handleIotWebhook(payload);
-  }
 
   // Any authenticated user can see their own reports
   @Get('my')
